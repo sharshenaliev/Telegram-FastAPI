@@ -1,0 +1,14 @@
+alembic==1.13.1
+asyncpg
+fastapi
+fastapi-debug-toolbar
+celery
+flower
+itsdangerous
+psycopg2-binary
+python-dotenv
+python-telegram-bot==21.2
+redis
+SQLAlchemy==1.4
+sqladmin
+uvicorn

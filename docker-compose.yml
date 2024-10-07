@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    expose:
+      - "5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/
+    env_file: .env
+    restart: always
+
+
+  app:
+    build: .
+    container_name: app
+    restart: always
+    ports:
+      - "8000:8000"
+    command: uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload && alembic upgrade head
+    volumes:
+      - .:/app
+    env_file: .env
+    depends_on:
+      - postgres
+
+  bot:
+    build: .
+    restart: always
+    command: python bot.py
+
+
+  redis:
+    image: redis:latest
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    command: redis-server --port 6379
+    restart: always
+    ports:
+      - "6379"
+
+  celery:
+    build: .
+    command: celery -A src.tasks.celery worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  celery-flower:
+    build: .
+    command: celery -A src.tasks.celery flower
+    ports:
+      - 5555:5555
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
